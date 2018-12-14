@@ -25,6 +25,9 @@ set -e
 
 declare LIBRARY_VERSION=2.8.2
 
+declare CONAN_USER=rgpaul
+declare CONAN_CHANNEL=stable
+
 declare TOOLCHAIN_VERSION=clang
 # please check the compiler version of your ndk before building f.e.:
 # /opt/android-ndks/android-ndk-r18b/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ --version
@@ -82,10 +85,10 @@ function createConanPackage()
     local api_level=$2
     local build_type=$3
 
-    conan create . LibreSSL/${LIBRARY_VERSION}@rgpaul/stable -s os=Android -s os.api_level=${api_level} \
-        -s compiler=${TOOLCHAIN_VERSION} -s compiler.version=${COMPILER_VERSION} -s compiler.libcxx=${COMPILER_LIBCXX} \
-        -s build_type=${build_type} -o android_ndk=${NDK_VERSION} -o android_stl_type=${STL_TYPE} -s arch=${arch} \
-        -o shared=False
+    conan create . libressl/${LIBRARY_VERSION}@${CONAN_USER}/${CONAN_CHANNEL} -s os=Android \
+        -s os.api_level=${api_level} -s compiler=${TOOLCHAIN_VERSION} -s compiler.version=${COMPILER_VERSION} \
+        -s compiler.libcxx=${COMPILER_LIBCXX} -s build_type=${build_type} -o android_ndk=${NDK_VERSION} \
+        -o android_stl_type=${STL_TYPE} -s arch=${arch} -o shared=False
 }
 
 #=======================================================================================================================

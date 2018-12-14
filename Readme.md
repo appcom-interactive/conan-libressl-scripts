@@ -10,7 +10,7 @@ This repository is licensed under the [MIT License](LICENSE).
 
 To create a package for macOS you can run the conan command like this:
 
-`conan create . LibreSSL/2.7.4@rgpaul/stable -s os=Macos -s os.version=10.14 -s arch=x86_64 -s build_type=Release -o shared=False`
+`conan create . libressl/2.7.4@rgpaul/stable -s os=Macos -s os.version=10.14 -s arch=x86_64 -s build_type=Release -o shared=False`
 
 ### Requirements
 

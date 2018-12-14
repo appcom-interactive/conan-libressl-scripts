@@ -2,7 +2,7 @@ from conans import ConanFile, CMake, tools
 import os
 
 class ZlibConan(ConanFile):
-    name = "LibreSSL"
+    name = "libressl"
     version = "2.8.2"
     author = "Ralph-Gordon Paul (gordon@rgpaul.com)"
     settings = "os", "compiler", "build_type", "arch"
