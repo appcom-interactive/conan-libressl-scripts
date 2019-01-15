@@ -4,12 +4,12 @@ import os
 class ZlibConan(ConanFile):
     name = "libressl"
     version = "2.8.2"
-    author = "Ralph-Gordon Paul (gordon@rgpaul.com)"
+    author = "Ralph-Gordon Paul (g.paul@appcom-interactive.de)"
     settings = "os", "compiler", "build_type", "arch"
     options = {"shared": [True, False], "android_ndk": "ANY", "android_stl_type":["c++_static", "c++_shared"]}
     default_options = "shared=False", "android_ndk=None", "android_stl_type=c++_static"
     description = "LibreSSL is a version of the TLS/crypto stack forked from OpenSSL in 2014, with goals of modernizing the codebase, improving security, and applying best practice development processes."
-    url = "https://github.com/Manromen/conan-libressl-scripts"
+    url = "https://github.com/appcom-interactive/conan-libressl-scripts"
     license = "ISC"
     exports_sources = "cmake-modules/*"
 
