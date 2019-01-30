@@ -30,13 +30,23 @@ class ZlibConan(ConanFile):
             cmake.definitions["CMAKE_ANDROID_NDK_TOOLCHAIN_VERSION"] = self.settings.compiler
             cmake.definitions["CMAKE_ANDROID_STL_TYPE"] = self.options.android_stl_type
 
+            # disable CLI Tools for Android
+            cmake.definitions["LIBRESSL_APPS"] = "OFF"
+            cmake.definitions["LIBRESSL_TESTS"] = "OFF"
+            
+
         if self.settings.os == "iOS":
             ios_toolchain = "cmake-modules/Toolchains/ios.toolchain.cmake"
             cmake.definitions["CMAKE_TOOLCHAIN_FILE"] = ios_toolchain
+
             if self.settings.arch == "x86" or self.settings.arch == "x86_64":
                 cmake.definitions["IOS_PLATFORM"] = "SIMULATOR"
             else:
                 cmake.definitions["IOS_PLATFORM"] = "OS"
+
+            # disable CLI Tools for iOS
+            cmake.definitions["LIBRESSL_APPS"] = "OFF"
+            cmake.definitions["LIBRESSL_TESTS"] = "OFF"
 
         if self.settings.os == "Macos":
             cmake.definitions["CMAKE_OSX_ARCHITECTURES"] = tools.to_apple_arch(self.settings.arch)
