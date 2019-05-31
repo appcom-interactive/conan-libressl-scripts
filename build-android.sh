@@ -30,8 +30,8 @@ declare CONAN_CHANNEL=stable
 
 declare TOOLCHAIN_VERSION=clang
 # please check the compiler version of your ndk before building f.e.:
-# /opt/android-ndks/android-ndk-r18b/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ --version
-declare COMPILER_VERSION=7.0
+# /opt/android-ndks/android-ndk-r19c/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ --version
+declare COMPILER_VERSION=8.0
 declare COMPILER_LIBCXX=libc++
 declare STL_TYPE=c++_static
 

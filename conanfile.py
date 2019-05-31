@@ -11,7 +11,7 @@ class LibreSSLConan(ConanFile):
     description = "LibreSSL is a version of the TLS/crypto stack forked from OpenSSL in 2014, with goals of modernizing the codebase, improving security, and applying best practice development processes."
     url = "https://github.com/Manromen/conan-libressl-scripts"
     license = "ISC"
-    exports_sources = "cmake-modules/*"
+    exports_sources = "cmake-modules/*", "ios/*"
 
     # download sources
     def source(self):
@@ -29,10 +29,15 @@ class LibreSSLConan(ConanFile):
             cmake.definitions["CMAKE_ANDROID_NDK"] = os.environ["ANDROID_NDK_PATH"]
             cmake.definitions["CMAKE_ANDROID_NDK_TOOLCHAIN_VERSION"] = self.settings.compiler
             cmake.definitions["CMAKE_ANDROID_STL_TYPE"] = self.options.android_stl_type
-
         if self.settings.os == "iOS":
             ios_toolchain = "cmake-modules/Toolchains/ios.toolchain.cmake"
             cmake.definitions["CMAKE_TOOLCHAIN_FILE"] = ios_toolchain
+            tools.replace_in_file("%s/libressl-%s/CMakeLists.txt" % (self.source_folder, self.version),
+                        "project (LibreSSL C ASM)",
+                        """project (LibreSSL C ASM)
+            include_directories(BEFORE "ios/include") """)
+            cmake.definitions["LIBRESSL_APPS"] = "OFF"
+            cmake.definitions["LIBRESSL_TESTS"] = "OFF"
             if self.settings.arch == "x86" or self.settings.arch == "x86_64":
                 cmake.definitions["IOS_PLATFORM"] = "SIMULATOR"
             else:
