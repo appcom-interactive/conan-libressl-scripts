@@ -1,0 +1,128 @@
+
+# C++ project
+language: cpp
+
+# Use Ubuntu 16.04 (Xenial)
+dist: xenial
+
+# Only build master and tags
+if: branch = master OR tag IS present
+
+git:
+    submodules: true
+
+env:
+  global:
+    - BINTRAY_USER=manromen
+    # BINTRAY_KEY
+    - secure: "P7HDgODK833q8hBEcS43pnydf8ex0XYpa1FtWlqb02zIgqziJEVm/SuGQz89ksPjMgjz2XgqaeFBoVD/V59GRt6pvh8m7E4UoMU22Y2rzKJoCOQIHTlTvTYWJZzD0wpB+HAwSNz1XAiqSXHLlwtPsCzvviFOIiKSLnfVbUuP1Ad2Q2ZFGcgMWFFSWjoZNHcVUeMn4YZc8AZUtsZWWymwo7I7qnVEuF/zsl5KAbphkCSAm1Umsnd2W3S0VfAJIJZAh9YfP2vt3YqNEW/ghyP38YIcCV9RR1wpOQR1mNfMU2W2wuEFEUPsJBOs1TNxTWsW8XKEI24PbnJ/B+wQAlbXTaqSORUVSEGZkOguWq6HtPlSc1EvphHKbkhnWeO6HO29oAPc6omS2SxYPbxWVselpYWQi4dn0dxtnQY1XcSCCh4TIUfCIhI+U/qNDPxsDKRaQ9FoPdTvh3LSSjRmmrOG3oeXHaQxrE7t3/O0Al//Q0jiASTeVI2Wy+ds0a/cruNCswgOwVDopGyBVQT5vd8XArzi3CzzDqZqWoNwm6RnxldTGFYcdnhk68G8ks2srxIwnruAe/NHuG5sbMCf3EZ/riW11D7qEb4BRFLIJtRpfxQZdN4jQMrPd5sL3DqkI8S4oJDS9pJ0gNPCpOvaCyNO0jwdFRPniPbVzEWUhaj7ZTw="
+    - CONAN_REPOSITORY=https://api.bintray.com/conan/manromen/rgpaul
+    - CONAN_REPOSITORY_NAME=rgpaul
+    - CONAN_USER=rgpaul
+    - CONAN_CHANNEL=stable
+    - LIBRARY_VERSION=2.9.2
+
+### before installing deps
+before_install:
+  # Download Android NDK from Google
+  - if [[ "$TRAVIS_OS_NAME" == "linux" && "$TARGET_PLATFORM" == "android" ]]; then
+      curl -sSOL "https://dl.google.com/android/repository/android-ndk-${TRAVIS_ANDROID_NDK_VERSION}-linux-x86_64.zip";
+      unzip -q -o android-ndk-${TRAVIS_ANDROID_NDK_VERSION}-linux-x86_64.zip;
+    fi
+
+### install deps
+install:
+
+  # Install python for windows
+  - if [[ "$TRAVIS_OS_NAME" == "windows" ]]; then
+      choco install python3;
+    fi
+
+  # Install conan
+  - pip3 install conan
+
+  # Add conan repository and apply conan config
+  - conan remote add ${CONAN_REPOSITORY_NAME} ${CONAN_REPOSITORY}
+  - conan config install ${TRAVIS_BUILD_DIR}/.travis/conan/config.zip
+
+  # login to conan
+  - conan user -p "$BINTRAY_KEY" -r ${CONAN_REPOSITORY_NAME} ${BINTRAY_USER}
+
+### build script
+script:
+  # show OS/compiler version
+  - uname -a
+
+  # make sure CXX is correctly set
+  - if [[ "${COMPILER}" != "" ]]; then export CXX=${COMPILER}; fi
+
+  # macOS Builds
+  - if [ "$TARGET_PLATFORM" == "macos" ]; then
+      export MACOS_SDK_VERSION=$(xcodebuild -showsdks | grep macosx | awk '{print $4}' | sed 's/[^0-9,\.]*//g');
+      echo "macOS SDK ${MACOS_SDK_VERSION}";
+      conan create . libressl/${LIBRARY_VERSION}@${CONAN_USER}/${CONAN_CHANNEL} -s os=Macos -s os.version=${MACOS_SDK_VERSION} -s arch=${TARGET_ARCH} -s build_type=${TARGET_BUILD_TYPE} -o shared=False;
+    fi
+
+  # iOS Builds
+  - if [ "$TARGET_PLATFORM" == "ios" ]; then
+      export IOS_SDK_VERSION=$(xcodebuild -showsdks | grep iphoneos | awk '{print $4}' | sed 's/[^0-9,\.]*//g');
+      echo "iOS SDK ${IOS_SDK_VERSION}";
+      
+      conan create . libressl/${LIBRARY_VERSION}@${CONAN_USER}/${CONAN_CHANNEL} -s os=iOS -s os.version=${IOS_SDK_VERSION} -s arch=${TARGET_ARCH} -s build_type=${TARGET_BUILD_TYPE} -o shared=False;
+    fi
+
+deploy:
+  provider: script
+  script: bash .travis/conan-deploy.sh
+  on:
+    tags: true
+    all_branches: true
+
+### build matrix
+matrix:
+  include:
+      
+    # iOS - Release
+    - os: osx
+      osx_image: xcode10.2
+      compiler: clang
+      env:
+        - TARGET_PLATFORM=ios
+        - TARGET_ARCH=armv8
+        - TARGET_BUILD_TYPE=Release
+
+      # iOS - Debug
+#    - os: osx
+#      osx_image: xcode10.2
+#      compiler: clang
+#      env:
+#        - TARGET_PLATFORM=ios
+#        - TARGET_ARCH=armv8
+#        - TARGET_BUILD_TYPE=Debug
+
+    # iOS - Simulator
+#    - os: osx
+#      osx_image: xcode10.2
+#      compiler: clang
+#      env:
+#        - TARGET_PLATFORM=ios
+#        - TARGET_ARCH=x86_64
+#        - TARGET_BUILD_TYPE=Debug
+
+    # macOS - Release
+#    - os: osx
+#      osx_image: xcode10.2
+#      compiler: clang
+#      env:
+#        - TARGET_PLATFORM=macos
+#        - TARGET_ARCH=x86_64
+#        - TARGET_BUILD_TYPE=Release
+
+    # macOS - Debug
+#    - os: osx
+#      osx_image: xcode10.2
+#      compiler: clang
+#      env:
+#        - TARGET_PLATFORM=macos
+#        - TARGET_ARCH=x86_64
+#        - TARGET_BUILD_TYPE=Debug
