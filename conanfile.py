@@ -29,6 +29,7 @@ class LibreSSLConan(ConanFile):
             cmake.definitions["CMAKE_ANDROID_NDK"] = os.environ["ANDROID_NDK_PATH"]
             cmake.definitions["CMAKE_ANDROID_NDK_TOOLCHAIN_VERSION"] = self.settings.compiler
             cmake.definitions["CMAKE_ANDROID_STL_TYPE"] = self.options.android_stl_type
+
         if self.settings.os == "iOS":
             ios_toolchain = "cmake-modules/Toolchains/ios.toolchain.cmake"
             cmake.definitions["CMAKE_TOOLCHAIN_FILE"] = ios_toolchain
@@ -46,6 +47,8 @@ class LibreSSLConan(ConanFile):
             # define all architectures for ios fat library
             if "arm" in self.settings.arch:
                 self.variants = ["armv7", "armv7s", "armv8"]
+            else:
+                self.variants = []
 
             # apply build config for all defined architectures
             if len(self.variants) > 0:
@@ -56,6 +59,8 @@ class LibreSSLConan(ConanFile):
                     else:
                         archs += ";" + tools.to_apple_arch(self.variants[i])
                 cmake.definitions["CMAKE_OSX_ARCHITECTURES"] = archs
+            else:
+                cmake.definitions["CMAKE_OSX_ARCHITECTURES"] = tools.to_apple_arch(self.settings.arch)
 
         if self.settings.os == "Macos":
             cmake.definitions["CMAKE_OSX_ARCHITECTURES"] = tools.to_apple_arch(self.settings.arch)
