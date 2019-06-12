@@ -43,6 +43,20 @@ class LibreSSLConan(ConanFile):
             else:
                 cmake.definitions["IOS_PLATFORM"] = "OS"
 
+            # define all architectures for ios fat library
+            if "arm" in self.settings.arch:
+                self.variants = ["armv7", "armv7s", "armv8"]
+
+            # apply build config for all defined architectures
+            if len(self.variants) > 0:
+                archs = ""
+                for i in range(0, len(self.variants)):
+                    if i == 0:
+                        archs = tools.to_apple_arch(self.variants[i])
+                    else:
+                        archs += ";" + tools.to_apple_arch(self.variants[i])
+                cmake.definitions["CMAKE_OSX_ARCHITECTURES"] = archs
+
         if self.settings.os == "Macos":
             cmake.definitions["CMAKE_OSX_ARCHITECTURES"] = tools.to_apple_arch(self.settings.arch)
 
@@ -52,19 +66,12 @@ class LibreSSLConan(ConanFile):
 
         lib_dir = os.path.join(self.package_folder,"lib")
 
-        if self.settings.os == "iOS":
-            # delete shared artifacts for static builds and the static library for shared builds
+        # execute ranlib for all static universal libraries (required for fat libraries)
+        if self.settings.os == "iOS" and len(self.variants) > 0:
             if self.options.shared == False:
                 for f in os.listdir(lib_dir):
                     if f.endswith(".a") and os.path.isfile(os.path.join(lib_dir,f)) and not os.path.islink(os.path.join(lib_dir,f)):
                         self.run("xcrun ranlib %s" % os.path.join(lib_dir,f))
-                        # thin the library (remove all other archs)
-                        self.run("lipo -extract %s %s -output %s" % (tools.to_apple_arch(self.settings.arch), os.path.join(lib_dir,f), os.path.join(lib_dir,f)))
-            else:
-                # thin the library (remove all other archs)
-                for f in os.listdir(lib_dir):
-                    if f.endswith(".dylib") and os.path.isfile(os.path.join(lib_dir,f)) and not os.path.islink(os.path.join(lib_dir,f)):
-                        self.run("lipo -extract %s %s -output %s" % (tools.to_apple_arch(self.settings.arch), os.path.join(lib_dir,f), os.path.join(lib_dir,f)))
 
     def package(self):
         self.copy("*", dst="include", src='include')
@@ -77,6 +84,10 @@ class LibreSSLConan(ConanFile):
     def package_info(self):
         self.cpp_info.libs = tools.collect_libs(self)
         self.cpp_info.includedirs = ['include']
+
+    def package_id(self):
+        if "arm" in self.settings.arch and self.settings.os == "iOS":
+            self.info.settings.arch = "AnyARM"
 
     def config_options(self):
         # remove android specific option for all other platforms
