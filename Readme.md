@@ -1,9 +1,13 @@
 # Conan LibreSSL
 
+[![Build Status](https://travis-ci.com/Manromen/conan-libressl-scripts.svg?branch=master)](https://travis-ci.com/Manromen/conan-libressl-scripts)
+
 This repository contains the conan receipe that is used to build the LibreSSL packages at [rgpaul bintray](https://bintray.com/manromen/rgpaul).
 
 For Infos about LibreSSL please visit [libressl.org](https://www.libressl.org/).
+
 The library is licensed under the [ISC License](https://tldrlegal.com/license/-isc-license).
+
 This repository is licensed under the [MIT License](LICENSE).
 
 ## macOS
