@@ -33,10 +33,30 @@ class LibreSSLConan(ConanFile):
         if self.settings.os == "iOS":
             ios_toolchain = "cmake-modules/Toolchains/ios.toolchain.cmake"
             cmake.definitions["CMAKE_TOOLCHAIN_FILE"] = ios_toolchain
+            
+            # specify the ios minimum sdk version for crypto
+            tools.replace_in_file("%s/libressl-%s/crypto/CMakeLists.txt" % (self.source_folder, self.version),
+                        "if (BUILD_SHARED_LIBS)",
+                        """set_xcode_property (crypto IPHONEOS_DEPLOYMENT_TARGET "10.0")
+                        if (BUILD_SHARED_LIBS) """)
+
+            # specify the ios minimum sdk version for ssl
+            tools.replace_in_file("%s/libressl-%s/ssl/CMakeLists.txt" % (self.source_folder, self.version),
+                        "if (BUILD_SHARED_LIBS)",
+                        """set_xcode_property (ssl IPHONEOS_DEPLOYMENT_TARGET "10.0")
+                        if (BUILD_SHARED_LIBS) """)
+
+            # specify the ios minimum sdk version for tls
+            tools.replace_in_file("%s/libressl-%s/tls/CMakeLists.txt" % (self.source_folder, self.version),
+                        "if (BUILD_SHARED_LIBS)",
+                        """set_xcode_property (tls IPHONEOS_DEPLOYMENT_TARGET "10.0")
+                        if (BUILD_SHARED_LIBS) """)
+
             tools.replace_in_file("%s/libressl-%s/CMakeLists.txt" % (self.source_folder, self.version),
                         "project (LibreSSL C ASM)",
                         """project (LibreSSL C ASM)
-            include_directories(BEFORE "ios/include") """)
+                        include_directories(BEFORE "ios/include") """)
+
             cmake.definitions["LIBRESSL_APPS"] = "OFF"
             cmake.definitions["LIBRESSL_TESTS"] = "OFF"
             if self.settings.arch == "x86" or self.settings.arch == "x86_64":
