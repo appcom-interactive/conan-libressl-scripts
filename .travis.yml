@@ -99,18 +99,52 @@ matrix:
         - TARGET_ARCH=armv8
         - TARGET_BUILD_TYPE=Release
 
+    # iOS - Debug
+    - os: osx
+      osx_image: xcode10.2
+      compiler: clang
+      env:
+        - TARGET_PLATFORM=ios
+        - TARGET_ARCH=armv8
+        - TARGET_BUILD_TYPE=Debug
 
+    # iOS - Simulator
+    - os: osx
+      osx_image: xcode10.2
+      compiler: clang
+      env:
+        - TARGET_PLATFORM=ios
+        - TARGET_ARCH=x86_64
+        - TARGET_BUILD_TYPE=Debug
+
+    # macOS - Release
+    - os: osx
+      osx_image: xcode10.2
+      compiler: clang
+      env:
+        - TARGET_PLATFORM=macos
+        - TARGET_ARCH=x86_64
+        - TARGET_BUILD_TYPE=Release
+
+    # macOS - Debug
+    - os: osx
+      osx_image: xcode10.2
+      compiler: clang
+      env:
+        - TARGET_PLATFORM=macos
+        - TARGET_ARCH=x86_64
+        - TARGET_BUILD_TYPE=Debug
 
     # Windows - Debug
-    - os: windows
+    # - os: windows
       
       # TODO: remove filter_secrets - for now we have to disable it due to the following issue:
       # https://travis-ci.community/t/current-known-issues-please-read-this-before-posting-a-new-topic/264/10
-      filter_secrets: false
-      env: 
-        # - TRAVIS_OS_NAME=windows
-        # - PATH=/c/Python37:/c/Python37/Scripts:$PATH
-        - PATH=c:\python37:c:\python37\Scripts:$PATH
-        - TARGET_PLATFORM=windows
-        - TARGET_ARCH=x86_64
-        - TARGET_BUILD_TYPE=Debug
+      # filter_secrets: false
+      # env: 
+        ## - TRAVIS_OS_NAME=windows
+        ## - PATH=/c/Python37:/c/Python37/Scripts:$PATH
+        # - PATH=c:\python37:c:\python37\Scripts:$PATH
+        # - TARGET_PLATFORM=windows
+        # - TARGET_ARCH=x86_64
+        # - TARGET_BUILD_TYPE=Debug
