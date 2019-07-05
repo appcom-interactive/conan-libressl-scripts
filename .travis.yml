@@ -28,6 +28,7 @@ before_install:
   - if [[ "$TRAVIS_OS_NAME" == "linux" && "$TARGET_PLATFORM" == "android" ]]; then
       curl -sSOL "https://dl.google.com/android/repository/android-ndk-${TRAVIS_ANDROID_NDK_VERSION}-linux-x86_64.zip";
       unzip -q -o android-ndk-${TRAVIS_ANDROID_NDK_VERSION}-linux-x86_64.zip;
+      export ANDROID_NDK_PATH=${TRAVIS_BUILD_DIR}/android-ndk-${TRAVIS_ANDROID_NDK_VERSION};
     fi
 
 ### install deps
@@ -107,7 +108,7 @@ matrix:
         - TRAVIS_ANDROID_NDK_VERSION=r20
         - TRAVIS_ANDROID_COMPILER=clang
         - TRAVIS_ANDROID_COMPILER_VERSION=8.0
-        - TRAVIS_ANDROID_ARCH=arm64-v8a
+        - TRAVIS_ANDROID_ARCH=armv8
         - TRAVIS_ANDROID_API_LEVEL=21
         - TRAVIS_ANDROID_COMPILER_LIBCXX=libc++
         - TRAVIS_ANDROID_STL_TYPE=c++_static
@@ -123,7 +124,7 @@ matrix:
         - TRAVIS_ANDROID_NDK_VERSION=r20
         - TRAVIS_ANDROID_COMPILER=clang
         - TRAVIS_ANDROID_COMPILER_VERSION=8.0
-        - TRAVIS_ANDROID_ARCH=armeabi-v7a
+        - TRAVIS_ANDROID_ARCH=armv7
         - TRAVIS_ANDROID_API_LEVEL=19
         - TRAVIS_ANDROID_COMPILER_LIBCXX=libc++
         - TRAVIS_ANDROID_STL_TYPE=c++_static
