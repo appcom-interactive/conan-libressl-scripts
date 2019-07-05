@@ -25,10 +25,14 @@ class LibreSSLConan(ConanFile):
         cmake.verbose = True
 
         if self.settings.os == "Android":
+            cmake.definitions["CMAKE_SYSTEM_NAME"] = "Android"
             cmake.definitions["CMAKE_SYSTEM_VERSION"] = self.settings.os.api_level
             cmake.definitions["CMAKE_ANDROID_NDK"] = os.environ["ANDROID_NDK_PATH"]
             cmake.definitions["CMAKE_ANDROID_NDK_TOOLCHAIN_VERSION"] = self.settings.compiler
             cmake.definitions["CMAKE_ANDROID_STL_TYPE"] = self.options.android_stl_type
+            cmake.definitions["CMAKE_ANDROID_ARCH_ABI"] = tools.to_android_abi(self.settings.arch)
+            if "arm" in self.settings.arch:
+                cmake.definitions["CMAKE_ANDROID_ARM_MODE"] = "ON"
 
         if self.settings.os == "iOS":
             ios_toolchain = "cmake-modules/Toolchains/ios.toolchain.cmake"
