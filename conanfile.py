@@ -46,6 +46,8 @@ class LibreSSLConan(ConanFile):
         cmake.definitions["ANDROID_STL"] = self.options.android_stl_type
         cmake.definitions["ANDROID_NATIVE_API_LEVEL"] = self.settings.os.api_level
         cmake.definitions["ANDROID_TOOLCHAIN"] = "clang"
+        cmake.definitions["LIBRESSL_APPS"] = "OFF"
+        cmake.definitions["LIBRESSL_TESTS"] = "OFF"
 
     def applyCmakeSettingsForiOS(self, cmake):
         ios_toolchain = "cmake-modules/Toolchains/ios.toolchain.cmake"
