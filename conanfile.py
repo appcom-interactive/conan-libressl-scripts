@@ -1,17 +1,17 @@
 from conans import ConanFile, CMake, tools
 import os
 
-class ZlibConan(ConanFile):
+class LibreSSLConan(ConanFile):
     name = "libressl"
-    version = "2.8.2"
-    author = "Ralph-Gordon Paul (g.paul@appcom-interactive.de)"
+    version = "2.9.2"
+    author = "Ralph-Gordon Paul (gordon@rgpaul.com)"
     settings = "os", "compiler", "build_type", "arch"
     options = {"shared": [True, False], "android_ndk": "ANY", "android_stl_type":["c++_static", "c++_shared"]}
     default_options = "shared=False", "android_ndk=None", "android_stl_type=c++_static"
     description = "LibreSSL is a version of the TLS/crypto stack forked from OpenSSL in 2014, with goals of modernizing the codebase, improving security, and applying best practice development processes."
     url = "https://github.com/appcom-interactive/conan-libressl-scripts"
     license = "ISC"
-    exports_sources = "cmake-modules/*"
+    exports_sources = "cmake-modules/*", "ios/*"
 
     # download sources
     def source(self):
@@ -25,10 +25,7 @@ class ZlibConan(ConanFile):
         cmake.verbose = True
 
         if self.settings.os == "Android":
-            cmake.definitions["CMAKE_SYSTEM_VERSION"] = self.settings.os.api_level
-            cmake.definitions["CMAKE_ANDROID_NDK"] = os.environ["ANDROID_NDK_PATH"]
-            cmake.definitions["CMAKE_ANDROID_NDK_TOOLCHAIN_VERSION"] = self.settings.compiler
-            cmake.definitions["CMAKE_ANDROID_STL_TYPE"] = self.options.android_stl_type
+            self.applyCmakeSettingsForAndroid(cmake)
 
             # disable CLI Tools for Android
             cmake.definitions["LIBRESSL_APPS"] = "OFF"
@@ -36,40 +33,66 @@ class ZlibConan(ConanFile):
             
 
         if self.settings.os == "iOS":
-            ios_toolchain = "cmake-modules/Toolchains/ios.toolchain.cmake"
-            cmake.definitions["CMAKE_TOOLCHAIN_FILE"] = ios_toolchain
-
-            if self.settings.arch == "x86" or self.settings.arch == "x86_64":
-                cmake.definitions["IOS_PLATFORM"] = "SIMULATOR"
-            else:
-                cmake.definitions["IOS_PLATFORM"] = "OS"
+            self.applyCmakeSettingsForiOS(cmake)
 
             # disable CLI Tools for iOS
             cmake.definitions["LIBRESSL_APPS"] = "OFF"
             cmake.definitions["LIBRESSL_TESTS"] = "OFF"
 
         if self.settings.os == "Macos":
-            cmake.definitions["CMAKE_OSX_ARCHITECTURES"] = tools.to_apple_arch(self.settings.arch)
+            self.applyCmakeSettingsFormacOS(cmake)
 
         cmake.configure(source_folder=library_folder)
         cmake.build()
         cmake.install()
 
-        lib_dir = os.path.join(self.package_folder,"lib")
+    def applyCmakeSettingsForAndroid(self, cmake):
+        android_toolchain = os.environ["ANDROID_NDK_PATH"] + "/build/cmake/android.toolchain.cmake"
+        cmake.definitions["CMAKE_SYSTEM_NAME"] = "Android"
+        cmake.definitions["CMAKE_TOOLCHAIN_FILE"] = android_toolchain
+        cmake.definitions["ANDROID_NDK"] = os.environ["ANDROID_NDK_PATH"]
+        cmake.definitions["ANDROID_ABI"] = tools.to_android_abi(self.settings.arch)
+        cmake.definitions["ANDROID_STL"] = self.options.android_stl_type
+        cmake.definitions["ANDROID_NATIVE_API_LEVEL"] = self.settings.os.api_level
+        cmake.definitions["ANDROID_TOOLCHAIN"] = "clang"
+        cmake.definitions["LIBRESSL_APPS"] = "OFF"
+        cmake.definitions["LIBRESSL_TESTS"] = "OFF"
 
-        if self.settings.os == "iOS":
-            # delete shared artifacts for static builds and the static library for shared builds
-            if self.options.shared == False:
-                for f in os.listdir(lib_dir):
-                    if f.endswith(".a") and os.path.isfile(os.path.join(lib_dir,f)) and not os.path.islink(os.path.join(lib_dir,f)):
-                        self.run("xcrun ranlib %s" % os.path.join(lib_dir,f))
-                        # thin the library (remove all other archs)
-                        self.run("lipo -extract %s %s -output %s" % (tools.to_apple_arch(self.settings.arch), os.path.join(lib_dir,f), os.path.join(lib_dir,f)))
-            else:
-                # thin the library (remove all other archs)
-                for f in os.listdir(lib_dir):
-                    if f.endswith(".dylib") and os.path.isfile(os.path.join(lib_dir,f)) and not os.path.islink(os.path.join(lib_dir,f)):
-                        self.run("lipo -extract %s %s -output %s" % (tools.to_apple_arch(self.settings.arch), os.path.join(lib_dir,f), os.path.join(lib_dir,f)))
+    def applyCmakeSettingsForiOS(self, cmake):
+        ios_toolchain = "cmake-modules/Toolchains/ios.toolchain.cmake"
+        cmake.definitions["CMAKE_TOOLCHAIN_FILE"] = ios_toolchain
+        variants = []
+        
+        tools.replace_in_file("%s/libressl-%s/CMakeLists.txt" % (self.source_folder, self.version),
+                    "project (LibreSSL C ASM)",
+                    """project (LibreSSL C ASM)
+                    include_directories(BEFORE "ios/include") """)
+
+        cmake.definitions["LIBRESSL_APPS"] = "OFF"
+        cmake.definitions["LIBRESSL_TESTS"] = "OFF"
+        if self.settings.arch == "x86" or self.settings.arch == "x86_64":
+            cmake.definitions["IOS_PLATFORM"] = "SIMULATOR"
+        else:
+            cmake.definitions["IOS_PLATFORM"] = "OS"
+
+        # define all architectures for ios fat library
+        if "arm" in self.settings.arch:
+            variants = ["armv7", "armv7s", "armv8"]
+
+        # apply build config for all defined architectures
+        if len(variants) > 0:
+            archs = ""
+            for i in range(0, len(variants)):
+                if i == 0:
+                    archs = tools.to_apple_arch(variants[i])
+                else:
+                    archs += ";" + tools.to_apple_arch(variants[i])
+            cmake.definitions["CMAKE_OSX_ARCHITECTURES"] = archs
+        else:
+            cmake.definitions["CMAKE_OSX_ARCHITECTURES"] = tools.to_apple_arch(self.settings.arch)
+    
+    def applyCmakeSettingsFormacOS(self, cmake):
+        cmake.definitions["CMAKE_OSX_ARCHITECTURES"] = tools.to_apple_arch(self.settings.arch)
 
     def package(self):
         self.copy("*", dst="include", src='include')
@@ -82,6 +105,10 @@ class ZlibConan(ConanFile):
     def package_info(self):
         self.cpp_info.libs = tools.collect_libs(self)
         self.cpp_info.includedirs = ['include']
+
+    def package_id(self):
+        if "arm" in self.settings.arch and self.settings.os == "iOS":
+            self.info.settings.arch = "AnyARM"
 
     def config_options(self):
         # remove android specific option for all other platforms

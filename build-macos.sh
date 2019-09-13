@@ -26,7 +26,7 @@ set -e
 declare CONAN_USER=appcom
 declare CONAN_CHANNEL=stable
 
-declare LIBRARY_VERSION=2.8.2
+declare LIBRARY_VERSION=2.9.2
 declare MACOS_SDK_VERSION=$(xcodebuild -showsdks | grep macosx | awk '{print $4}' | sed 's/[^0-9,\.]*//g')
 
 #=======================================================================================================================

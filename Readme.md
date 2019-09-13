@@ -3,7 +3,9 @@
 This repository contains the conan receipe that is used to build the LibreSSL packages at appcom.
 
 For Infos about LibreSSL please visit [libressl.org](https://www.libressl.org/).
+
 The library is licensed under the [ISC License](https://tldrlegal.com/license/-isc-license).
+
 This repository is licensed under the [MIT License](LICENSE).
 
 ## macOS

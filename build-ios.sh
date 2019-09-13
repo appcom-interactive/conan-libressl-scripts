@@ -26,7 +26,7 @@ set -e
 declare CONAN_USER=appcom
 declare CONAN_CHANNEL=stable
 
-declare LIBRARY_VERSION=2.8.2
+declare LIBRARY_VERSION=2.9.2
 declare IOS_SDK_VERSION=$(xcodebuild -showsdks | grep iphoneos | awk '{print $4}' | sed 's/[^0-9,\.]*//g')
 
 #=======================================================================================================================
@@ -45,10 +45,6 @@ function createConanPackage()
 # create packages for all architectures and build types
 
 # iOS
-createConanPackage armv7 Release
-createConanPackage armv7 Debug
-createConanPackage armv7s Release
-createConanPackage armv7s Debug
 createConanPackage armv8 Release
 createConanPackage armv8 Debug
 # SIMULATOR
